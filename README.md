@@ -1,49 +1,55 @@
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
+# GCP Hands On Lab
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_archive"></a> [archive](#requirement\_archive) | 2.4.0 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | 4.76.0 |
+![HLD](./benj/img/hld-mc-server.png "HLD Minecraft Server OnDemand")
 
-## Providers
+## Aperçu
 
-| Name | Version |
-|------|---------|
-| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.4.0 |
-| <a name="provider_google"></a> [google](#provider\_google) | 4.76.0 |
+Ce référentiel contient les codes Terraform et Python nécessaires pour gérer le démarrage et l'arrêt d'une instance Google Compute Engine. Il comprend les configurations pour :
 
-## Modules
+- Les buckets Google Cloud Storage utilisés pour stocker les sources des fonctions Cloud.
+- Les fonctions Cloud pour démarrer et arrêter l'instance Compute Engine.
+- Les comptes de service pour gérer les permissions nécessaires.
+- L'instance Compute Engine qui est gérée par les fonctions Cloud.
+- Les objets dans le bucket pour stocker les archives ZIP des fonctions Cloud.
 
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_cloud_functions_start"></a> [cloud\_functions\_start](#module\_cloud\_functions\_start) | GoogleCloudPlatform/cloud-functions/google | ~> 0.4 |
-| <a name="module_cloud_functions_stop"></a> [cloud\_functions\_stop](#module\_cloud\_functions\_stop) | GoogleCloudPlatform/cloud-functions/google | ~> 0.4 |
-| <a name="module_service_account_gce"></a> [service\_account\_gce](#module\_service\_account\_gce) | terraform-google-modules/service-accounts/google | ~> 3.0 |
-| <a name="module_service_account_gcf"></a> [service\_account\_gcf](#module\_service\_account\_gcf) | terraform-google-modules/service-accounts/google | ~> 3.0 |
+## Prérequis
 
-## Resources
+- Compte Google Cloud Platform avec les permissions nécessaires.
+- [Terraform](https://www.terraform.io/downloads.html) installé.
+- [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) installé.
 
-| Name | Type |
-|------|------|
-| [google_compute_instance.instance_bco](https://registry.terraform.io/providers/hashicorp/google/4.76.0/docs/resources/compute_instance) | resource |
-| [google_project_iam_member.project_run_invoker](https://registry.terraform.io/providers/hashicorp/google/4.76.0/docs/resources/project_iam_member) | resource |
-| [google_storage_bucket.bucket](https://registry.terraform.io/providers/hashicorp/google/4.76.0/docs/resources/storage_bucket) | resource |
-| [google_storage_bucket_object.function-source-start](https://registry.terraform.io/providers/hashicorp/google/4.76.0/docs/resources/storage_bucket_object) | resource |
-| [google_storage_bucket_object.function-source-stop](https://registry.terraform.io/providers/hashicorp/google/4.76.0/docs/resources/storage_bucket_object) | resource |
-| [archive_file.start](https://registry.terraform.io/providers/hashicorp/archive/2.4.0/docs/data-sources/file) | data source |
-| [archive_file.stop](https://registry.terraform.io/providers/hashicorp/archive/2.4.0/docs/data-sources/file) | data source |
+## Structure du Référentiel
 
-## Inputs
+- `main.tf`: Fichier Terraform principal contenant la définition des ressources.
+- `variables.tf`: Déclaration des variables utilisées dans les fichiers Terraform.
+- `startFunction/`: Répertoire contenant le code Python pour la fonction de démarrage.
+- `stopFunction/`: Répertoire contenant le code Python pour la fonction d'arrêt.
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_function_location"></a> [function\_location](#input\_function\_location) | The location of this cloud function | `string` | n/a | yes |
-| <a name="input_members"></a> [members](#input\_members) | Cloud Function Invoker and Developer roles for Users/SAs. Key names must be developers and/or invokers | `map(list(string))` | `{}` | no |
-| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | Project ID to create Cloud Function | `string` | n/a | yes |
+## Utilisation
 
-## Outputs
+1. **Configurer les Variables**: Mettez à jour les valeurs selon votre projet au niveau du fichier `terraform.tfvars`.
 
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+2. **Initialiser Terraform**: Exécutez la commande suivante pour initialiser Terraform.
+
+   ```bash
+   terraform init
+   ```
+
+3. **Plannification Terraform**: Exécutez la commande suivante pour plannifier Terraform.
+
+   ```bash
+   terraform plan
+   ```
+
+4. **Appliquer les changements Terraform**: Exécutez la commande suivante pour appliquer les changements Terraform.
+
+   ```bash
+   terraform apply
+   ```
+
+5. **Détruire les Ressources**: Si nécessaire, vous pouvez détruire les ressources créées avec la commande suivante.
+
+   ```bash
+   terraform destroy
+   ```
+
