@@ -20,8 +20,9 @@ Ce référentiel contient les codes Terraform et Python nécessaires pour gérer
 
 ## Structure du Référentiel
 
-- `main.tf`: Fichier Terraform principal contenant la définition des ressources.
-- `variables.tf`: Déclaration des variables utilisées dans les fichiers Terraform.
+- `terraform/main.tf`: Fichier Terraform principal contenant la définition des ressources.
+- `terraform/variables.tf`: Déclaration des variables utilisées dans les fichiers Terraform.
+- `terraform/terraform.tfvars`: Affectation des variables utilisées dans les fichiers Terraform.
 - `startFunction/`: Répertoire contenant le code Python pour la fonction de démarrage.
 - `stopFunction/`: Répertoire contenant le code Python pour la fonction d'arrêt.
 
