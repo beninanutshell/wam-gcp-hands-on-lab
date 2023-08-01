@@ -1,10 +1,4 @@
-locals {
-  functions = {
-    stop_function  = module.cloud_functions_stop.function_name
-    start_function = module.cloud_functions_start.function_name
-  }
-}
-
+# Crée un bucket Google Cloud Storage avec un accès uniforme au niveau du bucket.
 resource "google_storage_bucket" "bucket" {
   name                        = "${var.project_id}-gcf-source"
   location                    = "northamerica-northeast1"
@@ -12,6 +6,7 @@ resource "google_storage_bucket" "bucket" {
   project                     = var.project_id
 }
 
+# Module pour créer une cloud function pour arrêter une instance.
 module "cloud_functions_stop" {
   source  = "GoogleCloudPlatform/cloud-functions/google"
   version = "~> 0.4"
@@ -33,10 +28,11 @@ module "cloud_functions_stop" {
     min_instance_count    = "0"
     available_memory      = "256Mi"
     timeout_seconds       = "180"
-    service_account_email = module.service_accounts.email
+    service_account_email = module.service_account_gcf.email
   }
 }
 
+# Module pour créer une cloud function pour démarrer une instance.
 module "cloud_functions_start" {
   source  = "GoogleCloudPlatform/cloud-functions/google"
   version = "~> 0.4"
@@ -58,12 +54,13 @@ module "cloud_functions_start" {
     min_instance_count    = "0"
     available_memory      = "256Mi"
     timeout_seconds       = "60"
-    service_account_email = module.service_accounts.email
+    service_account_email = module.service_account_gcf.email
   }
 
 }
 
-module "service_accounts" {
+# Module pour créer un compte de service pour les cloud functions
+module "service_account_gcf" {
   source  = "terraform-google-modules/service-accounts/google"
   version = "~> 3.0"
 
@@ -78,6 +75,22 @@ module "service_accounts" {
 
 }
 
+# Module pour créer un compte de service pour l'instance Compute Engine.
+module "service_account_gce" {
+  source  = "terraform-google-modules/service-accounts/google"
+  version = "~> 3.0"
+
+  project_id = var.project_id
+  prefix     = "sac"
+  names      = ["gce-lnx-bco"]
+  project_roles = [
+    "${var.project_id}=>roles/logging.logWriter",
+    "${var.project_id}=>roles/monitoring.metricWriter",
+  ]
+
+}
+
+# Crée une instance Compute Engine avec une configuration spécifique.
 resource "google_compute_instance" "instance_bco" {
 
   boot_disk {
@@ -116,7 +129,7 @@ resource "google_compute_instance" "instance_bco" {
   }
 
   service_account {
-    email  = "564247751872-compute@developer.gserviceaccount.com"
+    email  = module.service_account_gce.email
     scopes = ["https://www.googleapis.com/auth/devstorage.read_only", "https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/monitoring.write", "https://www.googleapis.com/auth/service.management.readonly", "https://www.googleapis.com/auth/servicecontrol", "https://www.googleapis.com/auth/trace.append"]
   }
 
@@ -130,12 +143,14 @@ resource "google_compute_instance" "instance_bco" {
   zone = "northamerica-northeast1-a"
 }
 
+# Ajoute un membre avec le rôle cloud run invoker (cloud function gen2).
 resource "google_project_iam_member" "project_run_invoker" {
   project = var.project_id
   role    = "roles/run.invoker"
   member  = "user:benjamin.coutellier@davidson.group"
 }
 
+# Archive du code source pour la cloud function start
 data "archive_file" "start" {
   type             = "zip"
   output_path      = "./start.zip"
@@ -143,6 +158,7 @@ data "archive_file" "start" {
   output_file_mode = "0644"
 }
 
+# Archive du code source pour la cloud function stop
 data "archive_file" "stop" {
   type             = "zip"
   output_path      = "./stop.zip"
@@ -150,17 +166,16 @@ data "archive_file" "stop" {
   output_file_mode = "0644"
 }
 
+# Crée un objet dans le bucket pour le code source de la fonction start
 resource "google_storage_bucket_object" "function-source-start" {
   name   = "start-${data.archive_file.start.output_sha}.zip"
   bucket = google_storage_bucket.bucket.name
   source = data.archive_file.start.output_path
 }
 
+# Crée un objet dans le bucket pour le code source de la fonction stop
 resource "google_storage_bucket_object" "function-source-stop" {
   name   = "stop-${data.archive_file.stop.output_sha}.zip"
   bucket = google_storage_bucket.bucket.name
   source = data.archive_file.stop.output_path
 }
-
-
-
